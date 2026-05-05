@@ -1,405 +1,320 @@
-(function() {
-    // ============ KONFIGURATION ============
-    const STORAGE_KEY = 'vastum_life_data';
-    
-    // Felddefinitionen für das Formular
-    const fieldDefinitions = [
-        { key: 'vorname', label: 'Vorname', type: 'text', default: '' },
-        { key: 'geschlecht', label: 'Geschlecht', type: 'select', options: ['weiblich', 'männlich', 'divers'], default: 'divers' },
-        { key: 'alterHeute', label: 'Alter heute', type: 'number', default: 30 },
-        { key: 'wohnort', label: 'Wohnort', type: 'text', default: 'Berlin' },
-        { key: 'beruf', label: 'Beruf', type: 'text', default: 'Designer' },
-        { key: 'schlafStd', label: 'Schlaf (h/Tag)', type: 'number', default: 7.5, step: 0.5 },
-        { key: 'handyStd', label: 'Handy (hh:mm/Tag)', type: 'text', default: '02:45', placeholder: 'hh:mm' },
-        { key: 'sportStdWoche', label: 'Sport (h/Woche)', type: 'number', default: 2.5, step: 0.5 },
-        { key: 'freundeStdWoche', label: 'Freunde (h/Woche)', type: 'number', default: 5, step: 0.5 },
-        { key: 'tvStd', label: 'TV/Stream (hh:mm/Tag)', type: 'text', default: '01:30' },
-        { key: 'rauchenStk', label: 'Rauchen (Stk/Woche)', type: 'number', default: 0 },
-        { key: 'suessigkeiten', label: 'Süßigkeiten (Portionen/Woche)', type: 'number', default: 3 },
-        { key: 'koerpergroesse', label: 'Körpergröße (cm)', type: 'number', default: 175 },
-        { key: 'gewicht', label: 'Gewicht (kg)', type: 'number', default: 72 },
-        { key: 'alkohol', label: 'Alkohol', type: 'select', options: ['nie', 'selten', 'regelmäßig'], default: 'selten' },
-        { key: 'alkoholLiter', label: 'Alkohol (l/Woche)', type: 'number', default: 0.3, step: 0.1 },
-        { key: 'blutdruck', label: 'Blutdruck', type: 'select', options: ['niedrig', 'normal', 'hoch'], default: 'normal' },
-        { key: 'stress', label: 'Stress', type: 'select', options: ['niedrig', 'normal', 'hoch'], default: 'normal' },
-        { key: 'arbeitsStdWoche', label: 'Arbeit (h/Woche)', type: 'number', default: 38 },
-        { key: 'urlaubstage', label: 'Urlaubstage/Jahr', type: 'number', default: 28 },
-        { key: 'krankheitstage', label: 'Krankheitstage/Jahr', type: 'number', default: 5 },
-        { key: 'gehalt', label: 'Gehalt (€/Jahr)', type: 'number', default: 48000 },
-        { key: 'vermoegen', label: 'Vermögen (€)', type: 'number', default: 25000 }
-    ];
+document.addEventListener("DOMContentLoaded", () => {
+    // DOM-Elemente
+    const settingsToggle = document.getElementById("settings-toggle");
+    const settingsClose = document.getElementById("settings-close");
+    const drawer = document.getElementById("settings-drawer");
+    const overlay = document.getElementById("drawer-overlay");
+    const userForm = document.getElementById("user-form");
+    const btnExample = document.getElementById("btn-example");
+    const gridContainer = document.getElementById("life-grid");
 
-    // Kategorien für die Overlay-Visualisierung
-    const categories = [
-        { key: 'schlaf', label: '😴 Schlaf', hoursPerWeek: (d) => parseFloat(d.schlafStd || 0) * 7 },
-        { key: 'handy', label: '📱 Social Media', hoursPerWeek: (d) => parseTimeToHours(d.handyStd) * 7 },
-        { key: 'freunde', label: '👥 Freunde', hoursPerWeek: (d) => parseFloat(d.freundeStdWoche || 0) },
-        { key: 'sport', label: '🏋️ Sport', hoursPerWeek: (d) => parseFloat(d.sportStdWoche || 0) },
-        { key: 'arbeit', label: '💼 Arbeit', hoursPerWeek: (d) => parseFloat(d.arbeitsStdWoche || 0) },
-        { key: 'tv', label: '📺 TV/Stream', hoursPerWeek: (d) => parseTimeToHours(d.tvStd) * 7 },
-        { key: 'rauchen', label: '🚬 Rauchen', hoursPerWeek: (d) => 0.1 * (parseFloat(d.rauchenStk || 0)) }
-    ];
+    // Statistik-Elemente
+    const statTitle = document.getElementById("stat-title");
+    const statPercent = document.getElementById("stat-percent");
+    const statAbsolute = document.getElementById("stat-absolute");
+    const statPastPercent = document.getElementById("stat-past-percent");
 
-    // ============ HILFSFUNKTIONEN ============
-    function parseTimeToHours(str) {
-        if (!str || typeof str !== 'string') return 0;
-        const parts = str.split(':');
-        if (parts.length === 2) {
-            const h = parseFloat(parts[0]) || 0;
-            const m = parseFloat(parts[1]) || 0;
-            return h + m / 60;
-        }
-        return parseFloat(str) || 0;
+    // Default Benutzer-Daten (Fallback falls localStorage leer)
+    const defaultData = {
+        vorname: "Gast",
+        geschlecht: "divers",
+        alter: 25,
+        lebenserwartung: 80,
+        wohnort: "München",
+        beruf: "Entwickler",
+        schlaf: 8,
+        arbeitsstunden: 40,
+        handy: "03:00",
+        tv: "01:30",
+        sport: 3,
+        freunde: 10,
+        rauchen: 0,
+        suessigkeiten: "mittel",
+        groesse: 180,
+        gewicht: 75,
+        alkohol_konsum: "selten",
+        alkohol_liter: 0.5,
+        blutdruck: "normal",
+        stress: "normal",
+        urlaub: 30,
+        krankheitstage: 5,
+        gehalt: 2500,
+        vermoegen: 15000
+    };
+
+    // Beispiel-Musterdaten (35-jährige Person)
+    const exampleData = {
+        vorname: "Maximilian",
+        geschlecht: "maennlich",
+        alter: 35,
+        lebenserwartung: 82,
+        wohnort: "Hamburg",
+        beruf: "Projektleiter",
+        schlaf: 7.5,
+        arbeitsstunden: 38,
+        handy: "02:45",
+        tv: "01:15",
+        sport: 4,
+        freunde: 8,
+        rauchen: 5,
+        suessigkeiten: "mittel",
+        groesse: 182,
+        gewicht: 81,
+        alkohol_konsum: "regelmaessig",
+        alkohol_liter: 1.2,
+        blutdruck: "normal",
+        stress: "hoch",
+        urlaub: 30,
+        krankheitstage: 4,
+        gehalt: 3200,
+        vermoegen: 45000
+    };
+
+    let userData = {};
+
+    // --- DRAWER (EINSTELLUNGEN) STEUERUNG ---
+    function openDrawer() {
+        drawer.classList.add("open");
+        overlay.classList.add("active");
     }
 
-    function getSampleData() {
-        return {
-            vorname: 'Mila',
-            geschlecht: 'weiblich',
-            alterHeute: 29,
-            wohnort: 'Hamburg',
-            beruf: 'Architektin',
-            schlafStd: 7.5,
-            handyStd: '02:30',
-            sportStdWoche: 3,
-            freundeStdWoche: 6,
-            tvStd: '01:15',
-            rauchenStk: 0,
-            suessigkeiten: 4,
-            koerpergroesse: 168,
-            gewicht: 63,
-            alkohol: 'selten',
-            alkoholLiter: 0.5,
-            blutdruck: 'normal',
-            stress: 'normal',
-            arbeitsStdWoche: 40,
-            urlaubstage: 30,
-            krankheitstage: 4,
-            gehalt: 52000,
-            vermoegen: 38000
-        };
+    function closeDrawer() {
+        drawer.classList.remove("open");
+        overlay.classList.remove("active");
     }
 
-    // ============ STATE MANAGEMENT ============
-    let currentData = null;
-    let activeOverlay = null; // Kategorie-Key oder null
-    let viewMode = 'grid'; // 'grid' oder 'single'
+    settingsToggle.addEventListener("click", openDrawer);
+    settingsClose.addEventListener("click", closeDrawer);
+    overlay.addEventListener("click", closeDrawer);
 
-    function loadData() {
-        const stored = localStorage.getItem(STORAGE_KEY);
+    // --- FORMULAR & LOCAL STORAGE ---
+    function loadUserData() {
+        const stored = localStorage.getItem("lifeInWeeksData");
         if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                console.warn('Fehler beim Laden der Daten:', e);
-            }
+            userData = JSON.parse(stored);
+        } else {
+            userData = { ...defaultData };
+            // Wenn keine Daten da sind, direkt Einstellungs-Drawer öffnen
+            openDrawer();
         }
-        return getSampleData();
+        fillFormFields(userData);
     }
 
-    function saveData(data) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-
-    // ============ DOM REFERENZEN ============
-    const settingsPanel = document.getElementById('settingsPanel');
-    const dashboardPanel = document.getElementById('dashboardPanel');
-    const settingsToggle = document.getElementById('settingsToggle');
-    const formContainer = document.getElementById('formContainer');
-    const sampleBtn = document.getElementById('sampleBtn');
-    const saveBtn = document.getElementById('saveBtn');
-    const greetingName = document.getElementById('greetingName');
-    const categoryContainer = document.getElementById('categoryContainer');
-    const dynamicViz = document.getElementById('dynamicVisualization');
-    const viewToggle = document.getElementById('viewToggle');
-
-    // ============ FORMULAR RENDERING ============
-    function renderForm(data) {
-        formContainer.innerHTML = '';
-        
-        fieldDefinitions.forEach(field => {
-            const div = document.createElement('div');
-            div.className = 'input-group';
-            
-            const label = document.createElement('label');
-            label.textContent = field.label;
-            div.appendChild(label);
-            
-            if (field.type === 'select') {
-                const select = document.createElement('select');
-                select.dataset.key = field.key;
-                field.options.forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt;
-                    option.textContent = opt;
-                    if (data[field.key] === opt) option.selected = true;
-                    select.appendChild(option);
-                });
-                div.appendChild(select);
-            } else {
-                const input = document.createElement('input');
-                input.type = field.type || 'text';
-                input.dataset.key = field.key;
-                if (field.step) input.step = field.step;
-                if (field.placeholder) input.placeholder = field.placeholder;
-                input.value = data[field.key] ?? field.default ?? '';
-                div.appendChild(input);
-            }
-            
-            formContainer.appendChild(div);
+    function fillFormFields(data) {
+        Object.keys(data).forEach(key => {
+            const field = document.getElementById(key);
+            if (field) field.value = data[key];
         });
     }
 
-    function collectFormData() {
-        const data = {};
-        const inputs = formContainer.querySelectorAll('input, select');
-        
-        inputs.forEach(el => {
-            const key = el.dataset.key;
-            if (!key) return;
-            
-            let value = el.value;
-            if (el.tagName === 'SELECT') {
-                data[key] = value;
-            } else {
-                if (el.type === 'number') {
-                    data[key] = parseFloat(value) || 0;
+    userForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        Object.keys(defaultData).forEach(key => {
+            const field = document.getElementById(key);
+            if (field) {
+                // Konvertiere Zahlenwerte
+                if (field.type === "number") {
+                    userData[key] = parseFloat(field.value) || 0;
                 } else {
-                    data[key] = value;
+                    userData[key] = field.value;
                 }
             }
         });
-        
-        return data;
+        localStorage.setItem("lifeInWeeksData", JSON.stringify(userData));
+        closeDrawer();
+        initVisualization();
+    });
+
+    btnExample.addEventListener("click", () => {
+        fillFormFields(exampleData);
+    });
+
+    // --- HILFSFUNKTIONEN ZUR ZEIT-UMRECHNUNG ---
+    function timeToHours(timeStr) {
+        if (!timeStr || !timeStr.includes(":")) return 0;
+        const [hours, minutes] = timeStr.split(":").map(Number);
+        return hours + (minutes / 60);
     }
 
-    // ============ BERECHNUNGEN ============
-    function calculateStats(data) {
-        const alter = parseFloat(data.alterHeute) || 30;
-        const lebenserwartung = data.geschlecht === 'weiblich' ? 83 : 
-                                data.geschlecht === 'männlich' ? 78 : 80;
-        const geburtsjahr = new Date().getFullYear() - alter;
-        const gesamteWochen = Math.round(lebenserwartung * 52.1429);
-        const vergangeneWochen = Math.round(alter * 52.1429);
-        const zukuenftigeWochen = gesamteWochen - vergangeneWochen;
-        
-        return { 
-            alter, 
-            lebenserwartung, 
-            geburtsjahr, 
-            gesamteWochen, 
-            vergangeneWochen, 
-            zukuenftigeWochen,
-            prozentVerbraucht: ((vergangeneWochen / gesamteWochen) * 100).toFixed(1)
-        };
-    }
+    // --- DOT-GRID ERSTELLEN ---
+    function initVisualization() {
+        gridContainer.innerHTML = "";
+        const totalMonths = userData.lebenserwartung * 12;
+        const passedMonths = userData.alter * 12;
 
-    // ============ VISUALISIERUNG ============
-    function renderVisualization() {
-        if (!currentData) return;
-        
-        const stats = calculateStats(currentData);
-        
-        if (viewMode === 'grid') {
-            renderGridView(stats);
-        } else {
-            renderSingleView(stats);
-        }
-    }
+        let currentDecadeBlock = null;
 
-    function renderGridView(stats) {
-        dynamicViz.innerHTML = `
-            <div class="viz-box">
-                <div class="weeks-grid" id="weeksGrid"></div>
-            </div>
-            <div class="fact-box stats-right" id="statsText"></div>
-        `;
-        
-        renderWeeksGrid(stats);
-        renderStatsText(stats);
-    }
+        for (let month = 0; month < totalMonths; month++) {
+            const yearIndex = Math.floor(month / 12);
+            const decadeIndex = Math.floor(yearIndex / 10);
+            const monthInYear = month % 12;
 
-    function renderWeeksGrid(stats) {
-        const grid = document.getElementById('weeksGrid');
-        if (!grid) return;
-        
-        grid.innerHTML = '';
-        const { gesamteWochen, vergangeneWochen } = stats;
-        
-        for (let i = 0; i < gesamteWochen; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'dot';
+            // Alle 10 Jahre einen neuen Dekaden-Container erstellen
+            if (monthInYear === 0 && yearIndex % 10 === 0) {
+                currentDecadeBlock = document.createElement("div");
+                currentDecadeBlock.className = "decade-block";
+                gridContainer.appendChild(currentDecadeBlock);
+            }
+
+            // Am Jahresanfang eine neue Zeile starten
+            let yearRow;
+            if (monthInYear === 0) {
+                yearRow = document.createElement("div");
+                yearRow.className = "year-row";
+                yearRow.dataset.year = yearIndex;
+
+                const label = document.createElement("span");
+                label.className = "year-label";
+                label.innerText = yearIndex === 0 ? "Geburt" : `${yearIndex} J.`;
+                yearRow.appendChild(label);
+
+                const monthsContainer = document.createElement("div");
+                monthsContainer.className = "months-container";
+                yearRow.appendChild(monthsContainer);
+
+                currentDecadeBlock.appendChild(yearRow);
+            } else {
+                yearRow = currentDecadeBlock.querySelector(`.year-row[data-year="${yearIndex}"]`);
+            }
+
+            const monthsContainer = yearRow.querySelector(".months-container");
+            const dot = document.createElement("div");
             
-            if (i < vergangeneWochen) {
-                dot.classList.add('past');
-                
-                // Overlay-Logik
-                if (activeOverlay && currentData) {
-                    const cat = categories.find(c => c.key === activeOverlay);
-                    if (cat) {
-                        const hoursPerWeek = cat.hoursPerWeek(currentData);
-                        const fraction = Math.min(hoursPerWeek / 168, 1);
-                        
-                        if (fraction > 0.03) {
-                            const intensity = 0.4 + fraction * 0.6;
-                            dot.style.background = `rgba(255, 138, 122, ${intensity})`;
-                            dot.style.boxShadow = `0 0 ${6 + fraction * 8}px rgba(255, 107, 94, ${intensity})`;
-                        }
+            // Dot-ID ist die laufende Nummer des Monats
+            dot.className = "dot";
+            dot.id = `m-${month}`;
+
+            // Initialisierung als Vergangen oder Zukunft
+            if (month < passedMonths) {
+                dot.classList.add("past");
+            } else {
+                dot.classList.add("future");
+            }
+
+            monthsContainer.appendChild(dot);
+        }
+
+        // Standard-Statistik aufrufen
+        setActiveFilter("standard");
+    }
+
+    // --- FILTER- & STATISTIK-LOGIK ---
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    filterButtons.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            filterButtons.forEach(b => b.classList.remove("active"));
+            e.target.classList.add("active");
+            setActiveFilter(e.target.dataset.filter);
+        });
+    });
+
+    function setActiveFilter(filterType) {
+        const totalMonths = userData.lebenserwartung * 12;
+        const passedMonths = userData.alter * 12;
+        const dots = document.querySelectorAll(".dot");
+
+        // Alle Punkte in Standardzustand zurücksetzen
+        dots.forEach(dot => {
+            dot.classList.remove("highlighted", "dimmed");
+        });
+
+        let fraction = 0; // Welcher Anteil des Lebens wird durch diesen Faktor belegt?
+        let labelText = "";
+        let customSubtext = "";
+        let totalStatHours = 0; // Für die Berechnung
+
+        switch (filterType) {
+            case "standard":
+                fraction = passedMonths / totalMonths;
+                labelText = "Gelebte Lebenszeit";
+                customSubtext = `${passedMonths} von ${totalMonths} Monaten gelebt`;
+                break;
+
+            case "schlaf":
+                // Stunden Schlaf pro Tag im Verhältnis zu 24 Stunden
+                fraction = userData.schlaf / 24;
+                labelText = "Verschlafenes Leben";
+                break;
+
+            case "arbeit":
+                // Stunden Arbeit pro Woche im Verhältnis zu den Gesamtstunden einer Woche (168h)
+                fraction = userData.arbeitsstunden / 168;
+                labelText = "Arbeitszeit im Leben";
+                break;
+
+            case "handy":
+                // Handynutzung pro Tag im Verhältnis zu 24 Std
+                fraction = timeToHours(userData.handy) / 24;
+                labelText = "Handy-Bildschirmzeit";
+                break;
+
+            case "freunde":
+                // Freunde-Zeit pro Woche im Verhältnis zu 168h
+                fraction = userData.freunde / 168;
+                labelText = "Zeit mit Freunden";
+                break;
+
+            case "sport":
+                // Sport-Zeit pro Woche im Verhältnis zu 168h
+                fraction = userData.sport / 168;
+                labelText = "Zeit für Sport";
+                break;
+
+            case "tv":
+                // TV-Zeit pro Tag im Verhältnis zu 24 Std
+                fraction = timeToHours(userData.tv) / 24;
+                labelText = "Fernsehkonsum";
+                break;
+        }
+
+        // Ziel-Anzahl der einzufärbenden Punkte berechnen
+        const targetHighlightCount = Math.round(totalMonths * fraction);
+
+        // UI Statistiken aktualisieren
+        statTitle.innerText = labelText;
+        statPercent.innerText = `${(fraction * 100).toFixed(1)}%`;
+        
+        if (filterType === "standard") {
+            statAbsolute.innerText = customSubtext;
+            statPastPercent.innerText = "100%";
+        } else {
+            const absoluteMonths = Math.round(totalMonths * fraction);
+            const absoluteYears = (absoluteMonths / 12).toFixed(1);
+            statAbsolute.innerText = `Das entspricht ca. ${absoluteYears} Jahren (${absoluteMonths} Monaten) deines gesamten Lebens.`;
+            
+            // Anteil am bisherigen Leben (immer gleich dem aktuellen Prozentsatz)
+            statPastPercent.innerText = `${(fraction * 100).toFixed(1)}%`;
+        }
+
+        // --- SCHLANGEN-ANIMATION ---
+        // Färbe die berechneten x% der Punkte nacheinander fließend ein
+        let delay = 0;
+        const maxAnimationDuration = 1500; // Maximale Dauer in ms für den gesamten Durchlauf
+        const stepDelay = Math.max(1, maxAnimationDuration / totalMonths); // Dynamischer Delay pro Punkt
+
+        dots.forEach((dot, index) => {
+            setTimeout(() => {
+                // Überprüfen, ob die aktuelle Filter-Klasse immer noch aktiv ist
+                const currentActiveBtn = document.querySelector(".filter-btn.active");
+                if (!currentActiveBtn || currentActiveBtn.dataset.filter !== filterType) return;
+
+                if (filterType === "standard") {
+                    // Standardfall: Nutzt das native Profil (Vergangenheit ausgefüllt, Zukunft leer)
+                    dot.classList.remove("dimmed");
+                } else {
+                    // Analyse-Fälle: Die ersten X % des Lebens werden farblich akzentuiert, der Rest verblasst
+                    if (index < targetHighlightCount) {
+                        dot.classList.add("highlighted");
+                    } else {
+                        dot.classList.add("dimmed");
                     }
                 }
-            } else {
-                dot.classList.add('future');
-            }
-            
-            dot.title = `Woche ${i + 1}`;
-            grid.appendChild(dot);
-        }
-    }
-
-    function renderStatsText(stats) {
-        const box = document.getElementById('statsText');
-        if (!box) return;
-        
-        box.innerHTML = `
-            <p><strong>👤 ${currentData.vorname || 'Du'}</strong>, ${currentData.alterHeute} Jahre</p>
-            <p>📍 ${currentData.wohnort || ''} · ${currentData.beruf || ''}</p>
-            <hr>
-            <p>🔹 Vergangene Wochen: <strong>${stats.vergangeneWochen.toLocaleString()}</strong></p>
-            <p>🔹 Verbleibende Wochen: <strong>${stats.zukuenftigeWochen.toLocaleString()}</strong></p>
-            <p>📊 Lebensanteil verbraucht: <strong>${stats.prozentVerbraucht}%</strong></p>
-            <p>🎂 Geburtsjahr: ~${stats.geburtsjahr}</p>
-            <p>⏳ Lebenserwartung: ${stats.lebenserwartung} Jahre</p>
-        `;
-    }
-
-    function renderSingleView(stats) {
-        dynamicViz.innerHTML = '<div class="single-view-grid" id="singleViewContainer"></div>';
-        const container = document.getElementById('singleViewContainer');
-        if (!container) return;
-        
-        categories.forEach(cat => {
-            const hPerWeek = cat.hoursPerWeek(currentData);
-            const hoursTotalLife = hPerWeek * stats.gesamteWochen;
-            const weeksEquivalent = (hoursTotalLife / 168).toFixed(1);
-            
-            const item = document.createElement('div');
-            item.className = 'single-item';
-            item.innerHTML = `
-                <span class="single-item-label">${cat.label}</span>
-                <span class="single-item-value">⏳ ${weeksEquivalent} Wochen</span>
-            `;
-            container.appendChild(item);
-        });
-        
-        // Gesamtsumme hinzufügen
-        const totalItem = document.createElement('div');
-        totalItem.className = 'single-item';
-        totalItem.style.borderColor = 'rgba(167, 139, 250, 0.4)';
-        totalItem.innerHTML = `
-            <span class="single-item-label">📐 Gesamtlebenswochen</span>
-            <span class="single-item-value">${stats.gesamteWochen.toLocaleString()} Wochen</span>
-        `;
-        container.appendChild(totalItem);
-    }
-
-    function updateCategoryPills() {
-        categoryContainer.innerHTML = '';
-        
-        categories.forEach(cat => {
-            const pill = document.createElement('span');
-            pill.className = `pill ${activeOverlay === cat.key ? 'active' : ''}`;
-            pill.textContent = cat.label;
-            pill.dataset.catKey = cat.key;
-            
-            pill.addEventListener('click', () => {
-                if (activeOverlay === cat.key) {
-                    activeOverlay = null;
-                } else {
-                    activeOverlay = cat.key;
-                }
-                updateCategoryPills();
-                if (viewMode === 'grid') {
-                    renderVisualization();
-                }
-            });
-            
-            categoryContainer.appendChild(pill);
+            }, delay);
+            delay += stepDelay;
         });
     }
 
-    // ============ PANEL-STEUERUNG ============
-    function showDashboard() {
-        settingsPanel.classList.add('hidden-panel');
-        dashboardPanel.classList.remove('hidden-panel');
-        
-        if (currentData) {
-            greetingName.innerHTML = `◉ ${currentData.vorname || 'Du'}, deine Wochen`;
-        }
-        
-        activeOverlay = null;
-        viewMode = 'grid';
-        viewToggle.textContent = '📐 Einzelansicht';
-        
-        updateCategoryPills();
-        renderVisualization();
-    }
-
-    function showSettings() {
-        dashboardPanel.classList.add('hidden-panel');
-        settingsPanel.classList.remove('hidden-panel');
-        
-        if (currentData) {
-            renderForm(currentData);
-        }
-    }
-
-    // ============ EVENT LISTENER ============
-    settingsToggle.addEventListener('click', () => {
-        if (settingsPanel.classList.contains('hidden-panel')) {
-            showSettings();
-        } else {
-            if (currentData && currentData.vorname) {
-                showDashboard();
-            }
-        }
-    });
-
-    saveBtn.addEventListener('click', () => {
-        const newData = collectFormData();
-        saveData(newData);
-        currentData = newData;
-        showDashboard();
-    });
-
-    sampleBtn.addEventListener('click', () => {
-        const sample = getSampleData();
-        renderForm(sample);
-    });
-
-    viewToggle.addEventListener('click', () => {
-        if (viewMode === 'grid') {
-            viewMode = 'single';
-            viewToggle.textContent = '🔲 Wochenansicht';
-            activeOverlay = null;
-            updateCategoryPills();
-        } else {
-            viewMode = 'grid';
-            viewToggle.textContent = '📐 Einzelansicht';
-        }
-        renderVisualization();
-    });
-
-    // ============ INITIALISIERUNG ============
-    function init() {
-        currentData = loadData();
-        
-        if (currentData && currentData.vorname) {
-            showDashboard();
-        } else {
-            showSettings();
-            renderForm(currentData);
-        }
-    }
-
-    init();
-})();
+    // App initialisieren
+    loadUserData();
+    initVisualization();
+});
