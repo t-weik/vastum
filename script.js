@@ -3,30 +3,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const drawer = document.getElementById("settings-drawer");
     const userForm = document.getElementById("user-form");
 
+    // Lade Daten oder Setze Defaults
     let userData = JSON.parse(localStorage.getItem("lifeData")) || {
-        vorname: "User", alter: 30, lebenserwartung: 80, schlaf: 8, handy: "03:00", 
-        tv: "02:00", arbeitsstunden: 40, sport: 3, freunde: 5
+        vorname: "", alter: 30, lebenserwartung: 85, 
+        schlaf: 8, handy: "03:00", tv: "01:30", 
+        arbeitsstunden: 40, sport: 4, freunde: 6
     };
 
-    const openDrawer = () => drawer.classList.add("open");
-    const closeDrawer = () => drawer.classList.remove("open");
-    
-    document.getElementById("settings-toggle").onclick = openDrawer;
-    document.getElementById("settings-close").onclick = closeDrawer;
+    const toggleDrawer = (state) => drawer.classList.toggle("open", state);
+    document.getElementById("settings-toggle").onclick = () => toggleDrawer(true);
+    document.getElementById("settings-close").onclick = () => toggleDrawer(false);
+
+    // Hilfsfunktion: Zeit-String zu Dezimalstunden
+    const parseTime = (str) => {
+        if(!str || !str.includes(":")) return 0;
+        const [h, m] = str.split(":").map(Number);
+        return h + (m / 60);
+    };
 
     document.getElementById("btn-example").onclick = () => {
-        const example = { vorname: "Max", alter: 35, lebenserwartung: 85, schlaf: 7.5, handy: "02:30", tv: "01:00", arbeitsstunden: 38, sport: 4, freunde: 8 };
-        Object.keys(example).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = example[key]; });
+        const ex = { vorname: "Maximilian", alter: 35, lebenserwartung: 85, schlaf: 7.5, handy: "03:20", tv: "01:15", arbeitsstunden: 38, sport: 5, freunde: 12 };
+        Object.keys(ex).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = ex[key]; });
     };
 
     userForm.onsubmit = (e) => {
         e.preventDefault();
-        const fd = new FormData(userForm);
         const newData = {};
         [...userForm.elements].forEach(el => { if(el.id) newData[el.id] = el.value; });
         userData = newData;
         localStorage.setItem("lifeData", JSON.stringify(userData));
-        closeDrawer();
+        toggleDrawer(false);
         render();
     };
 
@@ -34,27 +40,31 @@ document.addEventListener("DOMContentLoaded", () => {
         grid.innerHTML = "";
         const totalMonths = userData.lebenserwartung * 12;
         const passedMonths = userData.alter * 12;
-        const dotsPerRow = 24; // 2 Jahre pro Zeile
-        const rowsPerBlock = 5; // 10 Jahre pro Block
+        const dotsPerRow = 24; 
+        const rowsPerBlock = 5; 
 
-        for (let i = 0; i < Math.ceil(totalMonths / (dotsPerRow * rowsPerBlock)); i++) {
+        let monthCount = 0;
+        while (monthCount < totalMonths) {
+            const blockIdx = Math.floor(monthCount / (dotsPerRow * rowsPerBlock));
             const block = document.createElement("div");
             block.className = "decade-block";
+            
             const label = document.createElement("div");
             label.className = "decade-label";
-            label.innerText = i * 10;
+            label.innerText = blockIdx * 10;
             block.appendChild(label);
 
             for (let r = 0; r < rowsPerBlock; r++) {
                 const row = document.createElement("div");
                 row.className = "year-row";
                 for (let d = 0; d < dotsPerRow; d++) {
-                    const mIdx = (i * dotsPerRow * rowsPerBlock) + (r * dotsPerRow) + d;
-                    if (mIdx >= totalMonths) break;
-                    const dot = document.createElement("div");
-                    dot.className = `dot ${mIdx < passedMonths ? 'past' : 'future'}`;
-                    dot.id = `m-${mIdx}`;
-                    row.appendChild(dot);
+                    if (monthCount < totalMonths) {
+                        const dot = document.createElement("div");
+                        dot.className = `dot ${monthCount < passedMonths ? 'past' : 'future'}`;
+                        dot.id = `m-${monthCount}`;
+                        row.appendChild(dot);
+                        monthCount++;
+                    }
                 }
                 block.appendChild(row);
             }
@@ -65,30 +75,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateStats(filter) {
         const dots = document.querySelectorAll(".dot");
-        dots.forEach(d => d.className = d.className.replace(/highlighted|dimmed/g, ""));
-        
-        let ratio = (userData.alter * 12) / (userData.lebenserwartung * 12);
-        let title = "Gelebte Zeit";
+        const totalMonths = dots.length;
+        dots.forEach(d => d.className = d.className.replace(/highlighted|dimmed/g, "").trim());
 
-        if (filter !== "standard") {
-            const hours = {
+        let ratio = 0;
+        let title = "Gelebte Zeit";
+        let subtext = "";
+
+        if (filter === "standard") {
+            ratio = (userData.alter * 12) / totalMonths;
+            subtext = `${userData.alter * 12} Monate von ${totalMonths} bereits gelebt.`;
+        } else {
+            // Berechnung in Relation zum Gesamtleben (24h Basis oder 168h Woche Basis)
+            const factors = {
                 schlaf: userData.schlaf / 24,
+                handy: parseTime(userData.handy) / 24,
+                tv: parseTime(userData.tv) / 24,
                 arbeit: userData.arbeitsstunden / 168,
-                handy: (parseInt(userData.handy.split(":")[0]) || 0) / 24,
                 sport: userData.sport / 168,
-                freunde: userData.freunde / 168,
-                tv: (parseInt(userData.tv.split(":")[0]) || 0) / 24
+                freunde: userData.freunde / 168
             };
-            ratio = hours[filter] || 0;
-            title = filter.toUpperCase();
+            ratio = factors[filter] || 0;
+            title = `Lebensanteil: ${filter}`;
+            const totalYears = (totalMonths / 12 * ratio).toFixed(1);
+            subtext = `Hochgerechnet verbringst du ${totalYears} Jahre deines Lebens mit ${filter}.`;
         }
 
         document.getElementById("stat-title").innerText = title;
         document.getElementById("stat-percent").innerText = Math.round(ratio * 100) + "%";
-        document.getElementById("stat-absolute").innerText = `${Math.round(userData.lebenserwartung * 12 * ratio)} Monate Gesamtaufwand`;
+        document.getElementById("stat-absolute").innerText = subtext;
 
         if (filter !== "standard") {
-            const target = Math.round(dots.length * ratio);
+            const target = Math.round(totalMonths * ratio);
             dots.forEach((d, i) => {
                 if (i < target) d.classList.add("highlighted");
                 else d.classList.add("dimmed");
@@ -97,13 +115,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.querySelectorAll(".filter-btn").forEach(btn => {
-        btn.onclick = (e) => {
+        btn.onclick = () => {
             document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             updateStats(btn.dataset.filter);
         };
     });
 
+    // Init
     Object.keys(userData).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = userData[key]; });
     render();
 });

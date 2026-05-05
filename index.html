@@ -26,7 +26,7 @@
                 <div class="stat-group">
                     <span class="stat-label" id="stat-title">Gelebte Zeit</span>
                     <span class="stat-value" id="stat-percent">0%</span>
-                    <p class="stat-sub" id="stat-absolute">Lade Daten...</p>
+                    <p class="stat-sub" id="stat-absolute">Berechne...</p>
                 </div>
             </section>
 
@@ -50,65 +50,31 @@
             </header>
             
             <div class="settings-grid">
-                <button id="btn-example" class="btn-example">Beispiel-Daten laden</button>
-                
+                <button id="btn-example" class="btn-example">Beispiel-Daten laden (35 J.)</button>
                 <form id="user-form">
                     <div class="settings-section">
-                        <h3><i class="fas fa-user"></i> Basis-Daten</h3>
+                        <h3>Basis-Daten</h3>
                         <div class="form-row">
                             <div class="field"><label>Vorname</label><input type="text" id="vorname"></div>
                             <div class="field"><label>Alter</label><input type="number" id="alter"></div>
-                            <div class="field"><label>Erwartung (Jahre)</label><input type="number" id="lebenserwartung"></div>
+                            <div class="field"><label>Lebenserwartung</label><input type="number" id="lebenserwartung"></div>
                         </div>
                     </div>
-
                     <div class="settings-section">
-                        <h3><i class="fas fa-clock"></i> Täglicher Zeitvertreib</h3>
+                        <h3>Zeitfresser & Gewohnheiten</h3>
                         <div class="form-row">
-                            <div class="field"><label>Schlaf (h)</label><input type="number" id="schlaf" step="0.5"></div>
-                            <div class="field"><label>Handy (hh:mm)</label><input type="text" id="handy" placeholder="03:00"></div>
-                            <div class="field"><label>TV (hh:mm)</label><input type="text" id="tv" placeholder="01:30"></div>
+                            <div class="field"><label>Schlaf (h/Tag)</label><input type="number" id="schlaf" step="0.5"></div>
+                            <div class="field"><label>Smartphone (hh:mm)</label><input type="text" id="handy" placeholder="03:00"></div>
+                            <div class="field"><label>TV/Streaming (hh:mm)</label><input type="text" id="tv" placeholder="01:30"></div>
                         </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <h3><i class="fas fa-briefcase"></i> Arbeit & Finanzen</h3>
                         <div class="form-row">
                             <div class="field"><label>Arbeit (h/Woche)</label><input type="number" id="arbeitsstunden"></div>
-                            <div class="field"><label>Urlaub (Tage/Jahr)</label><input type="number" id="urlaub"></div>
-                            <div class="field"><label>Gehalt (€)</label><input type="number" id="gehalt"></div>
-                            <div class="field"><label>Vermögen (€)</label><input type="number" id="vermoegen"></div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <h3><i class="fas fa-heartbeat"></i> Lebensstil</h3>
-                        <div class="form-row">
                             <div class="field"><label>Sport (h/Woche)</label><input type="number" id="sport"></div>
                             <div class="field"><label>Freunde (h/Woche)</label><input type="number" id="freunde"></div>
-                            <div class="field"><label>Rauchen (Stück/Woche)</label><input type="number" id="rauchen"></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="field">
-                                <label>Alkohol</label>
-                                <select id="alkohol_konsum">
-                                    <option value="nie">Nie</option>
-                                    <option value="selten">Selten</option>
-                                    <option value="regelmaessig">Regelmäßig</option>
-                                </select>
-                            </div>
-                            <div class="field"><label>Stress</label>
-                                <select id="stress">
-                                    <option value="niedrig">Niedrig</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="hoch">Hoch</option>
-                                </select>
-                            </div>
                         </div>
                     </div>
-
                     <div class="form-footer">
-                        <button type="submit" class="btn-save">Speichern & Visualisieren</button>
+                        <button type="submit" class="btn-save">Speichern & Anwenden</button>
                     </div>
                 </form>
             </div>
