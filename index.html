@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Vastum · Dein Leben in Wochen</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container" id="appRoot">
+        <div class="top-bar">
+            <h1>◉ Vastum</h1>
+            <div class="settings-icon" id="settingsToggle" title="Einstellungen">⚙️</div>
+        </div>
+
+        <!-- Einstellungen / Eingabe Panel -->
+        <div id="settingsPanel" class="panel">
+            <div class="panel-header">
+                <h2>Deine Lebensdaten</h2>
+                <button id="sampleBtn" class="btn-secondary">⟳ Beispielwerte</button>
+            </div>
+            <div class="form-grid" id="formContainer">
+                <!-- Wird dynamisch von JS gefüllt -->
+            </div>
+            <div class="form-actions">
+                <button id="saveBtn" class="btn-primary">✓ Fertig – Zur Auswertung</button>
+            </div>
+        </div>
+
+        <!-- Auswertungs-Dashboard -->
+        <div id="dashboardPanel" class="panel hidden-panel">
+            <div class="dashboard-header">
+                <h2 id="greetingName">Dein Leben in Wochen</h2>
+                <div class="dashboard-controls">
+                    <button id="viewToggle" class="btn-secondary">📐 Einzelansicht</button>
+                </div>
+            </div>
+            
+            <!-- Kategorie-Filter -->
+            <div class="category-pills" id="categoryContainer">
+                <!-- Dynamisch gefüllt -->
+            </div>
+            
+            <!-- Visualisierungsbereich -->
+            <div id="dynamicVisualization" class="main-layout">
+                <!-- Dynamisch gefüllt -->
+            </div>
+        </div>
+    </div>
+
+    <script src="code.js"></script>
+</body>
+</html>
