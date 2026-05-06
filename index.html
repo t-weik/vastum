@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life in Months | Visualizer</title>
+    <title>Life in Months | Core</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -11,70 +11,158 @@
 
     <header class="main-header">
         <div class="logo">Life in Months</div>
-        <button id="settings-toggle" class="icon-btn">
-            <i class="fas fa-sliders-h"></i>
-        </button>
+        <div class="header-controls">
+            <div class="view-toggle">
+                <button id="view-main" class="view-btn active">Hauptansicht</button>
+                <button id="view-compare" class="view-btn">Einzelauswertung</button>
+            </div>
+            <button id="settings-toggle" class="icon-btn" title="Einstellungen">
+                <i class="fas fa-sliders-h"></i>
+            </button>
+        </div>
     </header>
 
     <div class="app-container">
-        <main class="grid-section">
-            <div id="life-grid" class="life-grid"></div>
-        </main>
-
-        <aside class="sidebar">
-            <section class="stats-card">
-                <div class="stat-group">
+        <main id="main-view-section" class="view-section active">
+            <div class="grid-wrapper">
+                <div id="life-grid" class="life-grid-monolith"></div>
+            </div>
+            
+            <div class="controls-overlay">
+                <div class="stats-card">
                     <span class="stat-label" id="stat-title">Gelebte Zeit</span>
                     <span class="stat-value" id="stat-percent">0%</span>
                     <p class="stat-sub" id="stat-absolute">Berechne...</p>
                 </div>
-            </section>
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-filter="standard">Status Quo</button>
+                    <button class="filter-btn" data-filter="schlaf">Schlaf</button>
+                    <button class="filter-btn" data-filter="arbeit">Arbeit</button>
+                    <button class="filter-btn" data-filter="handy">Handy</button>
+                    <button class="filter-btn" data-filter="freunde">Freunde</button>
+                    <button class="filter-btn" data-filter="sport">Sport</button>
+                    <button class="filter-btn" data-filter="tv">TV</button>
+                </div>
+            </div>
+        </main>
 
-            <section class="filter-section">
-                <button class="filter-btn active" data-filter="standard">Status Quo</button>
-                <button class="filter-btn" data-filter="schlaf">Schlaf</button>
-                <button class="filter-btn" data-filter="arbeit">Arbeit</button>
-                <button class="filter-btn" data-filter="handy">Smartphone</button>
-                <button class="filter-btn" data-filter="freunde">Soziales</button>
-                <button class="filter-btn" data-filter="sport">Sport</button>
-                <button class="filter-btn" data-filter="tv">TV & Streaming</button>
-            </section>
-        </aside>
+        <main id="compare-view-section" class="view-section">
+            <h2 class="section-title">Lebensbereiche im Direktvergleich</h2>
+            <div id="compare-grid" class="compare-grid-container">
+                </div>
+        </main>
     </div>
 
     <div id="settings-drawer" class="settings-fullscreen">
         <div class="settings-content">
             <header class="settings-header">
-                <h2>Persönliche Konfiguration</h2>
+                <h2>Persönliches Lebensprofil</h2>
                 <button id="settings-close" class="close-btn">&times;</button>
             </header>
             
             <div class="settings-grid">
-                <button id="btn-example" class="btn-example">Beispiel-Daten laden (35 J.)</button>
+                <button id="btn-example" class="btn-example">⚡ Beispiel-Daten einer 35-jährigen Person laden</button>
+                
                 <form id="user-form">
                     <div class="settings-section">
-                        <h3>Basis-Daten</h3>
+                        <h3><i class="fas fa-user-circle"></i> 1. Identität & Basis</h3>
                         <div class="form-row">
-                            <div class="field"><label>Vorname</label><input type="text" id="vorname"></div>
-                            <div class="field"><label>Alter</label><input type="number" id="alter"></div>
-                            <div class="field"><label>Lebenserwartung</label><input type="number" id="lebenserwartung"></div>
+                            <div class="field"><label>Vorname</label><input type="text" id="vorname" required></div>
+                            <div class="field"><label>Alter heute (Jahre)</label><input type="number" id="alter" required></div>
+                            <div class="field"><label>Lebenserwartung (Jahre)</label><input type="number" id="lebenserwartung" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="field">
+                                <label>Geschlecht</label>
+                                <select id="geschlecht">
+                                    <option value="divers">Divers</option>
+                                    <option value="weiblich">Weiblich</option>
+                                    <option value="maennlich">Männlich</option>
+                                </select>
+                            </div>
+                            <div class="field"><label>Wohnort</label><input type="text" id="wohnort"></div>
+                            <div class="field"><label>Beruf</label><input type="text" id="beruf"></div>
                         </div>
                     </div>
+
                     <div class="settings-section">
-                        <h3>Zeitfresser & Gewohnheiten</h3>
+                        <h3><i class="fas fa-hourglass-half"></i> 2. Täglicher Zeitvertreib</h3>
                         <div class="form-row">
-                            <div class="field"><label>Schlaf (h/Tag)</label><input type="number" id="schlaf" step="0.5"></div>
-                            <div class="field"><label>Smartphone (hh:mm)</label><input type="text" id="handy" placeholder="03:00"></div>
-                            <div class="field"><label>TV/Streaming (hh:mm)</label><input type="text" id="tv" placeholder="01:30"></div>
+                            <div class="field"><label>Schlaf (Std. pro Tag)</label><input type="number" id="schlaf" step="0.5" required></div>
+                            <div class="field"><label>Handynutzung (hh:mm pro Tag)</label><input type="text" id="handy" placeholder="02:30" required></div>
+                            <div class="field"><label>Fernsehen / TV (hh:mm pro Tag)</label><input type="text" id="tv" placeholder="01:30" required></div>
                         </div>
                         <div class="form-row">
-                            <div class="field"><label>Arbeit (h/Woche)</label><input type="number" id="arbeitsstunden"></div>
-                            <div class="field"><label>Sport (h/Woche)</label><input type="number" id="sport"></div>
-                            <div class="field"><label>Freunde (h/Woche)</label><input type="number" id="freunde"></div>
+                            <div class="field"><label>Sport (Std. pro Woche)</label><input type="number" id="sport" step="0.5" required></div>
+                            <div class="field"><label>Freunde (Std. pro Woche)</label><input type="number" id="freunde" step="0.5" required></div>
+                            <div class="field"><label>Arbeitsstunden (pro Woche)</label><input type="number" id="arbeitsstunden" required></div>
                         </div>
                     </div>
+
+                    <div class="settings-section">
+                        <h3><i class="fas fa-heartbeat"></i> 3. Physisches Wohlbefinden</h3>
+                        <div class="form-row">
+                            <div class="field"><label>Körpergröße (cm)</label><input type="number" id="groesse"></div>
+                            <div class="field"><label>Gewicht (kg)</label><input type="number" id="gewicht"></div>
+                            <div class="field">
+                                <label>Blutdruck</label>
+                                <select id="blutdruck">
+                                    <option value="niedrig">Niedrig</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="hoch">Hoch</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="field">
+                                <label>Süßigkeiten-Konsum</label>
+                                <select id="suessigkeiten">
+                                    <option value="wenig">Wenig / Nie</option>
+                                    <option value="mittel" selected>Mäßig</option>
+                                    <option value="viel">Sehr viel</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>Stresslevel</label>
+                                <select id="stress">
+                                    <option value="niedrig">Niedrig</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="hoch">Hoch</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3><i class="fas fa-wine-glass-alt"></i> 4. Konsum & Genuss</h3>
+                        <div class="form-row">
+                            <div class="field"><label>Rauchen (Stück pro Woche)</label><input type="number" id="rauchen" required></div>
+                            <div class="field">
+                                <label>Alkohol-Häufigkeit</label>
+                                <select id="alkohol_konsum">
+                                    <option value="nie">Nie</option>
+                                    <option value="selten" selected>Selten</option>
+                                    <option value="regelmaessig">Regelmäßig</option>
+                                </select>
+                            </div>
+                            <div class="field"><label>Alkohol (Liter pro Woche)</label><input type="number" id="alkohol_liter" step="0.1" required></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3><i class="fas fa-wallet"></i> 5. Jahresbilanz & Finanzen</h3>
+                        <div class="form-row">
+                            <div class="field"><label>Urlaubstage / Jahr</label><input type="number" id="urlaub" required></div>
+                            <div class="field"><label>Krankheitstage / Jahr</label><input type="number" id="krankheitstage" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="field"><label>Monatliches Netto-Gehalt (€)</label><input type="number" id="gehalt" required></div>
+                            <div class="field"><label>Aktuelles Vermögen (€)</label><input type="number" id="vermoegen" required></div>
+                        </div>
+                    </div>
+
                     <div class="form-footer">
-                        <button type="submit" class="btn-save">Speichern & Anwenden</button>
+                        <button type="submit" class="btn-save">Änderungen speichern & Visualisieren</button>
                     </div>
                 </form>
             </div>
